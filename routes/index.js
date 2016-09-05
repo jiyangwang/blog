@@ -169,6 +169,22 @@ module.exports = function(app) {
     res.redirect('/upload');
   });
 
+  app.get('/archive', function (req, res) {
+    Post.getArchive(function (err, posts) {
+      if (err) {
+        req.flash('error', err); 
+        return res.redirect('/');
+      }
+      res.render('archive', {
+        title: 'Archive',
+        posts: posts,
+        user: req.session.user,
+        success: req.flash('success').toString(),
+        error: req.flash('error').toString()
+      });
+    });
+  });
+
   app.get('/u/:name', function (req, res) {
     var page = parseInt(req.query.p) || 1;
     // check username validation
