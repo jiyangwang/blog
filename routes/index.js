@@ -18,19 +18,25 @@ var upload = multer({
 
 module.exports = function(app) {
   app.get('/', function (req, res) {
-  Post.getAll(null, function (err, posts) {
-    if (err) {
-      posts = [];
-    } 
-    res.render('index', {
-      title: 'Home',
-      user: req.session.user,
-      posts: posts,
-      success: req.flash('success').toString(),
-      error: req.flash('error').toString()
+    // check if it is the first page
+    var page = parseInt(req.query.p) || 1;
+    // query get 10 pages back
+    Post.getTen(null, page, function (err, posts, total) {
+      if (err) {
+        posts = [];
+      } 
+      res.render('index', {
+        title: 'Home',
+        posts: posts,
+        page: page,
+        isFirstPage: (page - 1) == 0,
+        isLastPage: ((page - 1) * 10 + posts.length) == total,
+        user: req.session.user,
+        success: req.flash('success').toString(),
+        error: req.flash('error').toString()
+      });
     });
   });
-});
 
   app.get('/reg', checkNotLogin);
   app.get('/reg', function (req, res) {
@@ -164,14 +170,15 @@ module.exports = function(app) {
   });
 
   app.get('/u/:name', function (req, res) {
-    //check username
+    var page = parseInt(req.query.p) || 1;
+    // check username validation
     User.get(req.params.name, function (err, user) {
       if (!user) {
-        req.flash('error', 'Wrong username!'); 
+        req.flash('error', '用户不存在!'); 
         return res.redirect('/');
       }
-      //query and get all article
-      Post.getAll(user.name, function (err, posts) {
+      //return 10 page
+      Post.getTen(user.name, page, function (err, posts, total) {
         if (err) {
           req.flash('error', err); 
           return res.redirect('/');
@@ -179,9 +186,12 @@ module.exports = function(app) {
         res.render('user', {
           title: user.name,
           posts: posts,
-          user : req.session.user,
-          success : req.flash('success').toString(),
-          error : req.flash('error').toString()
+          page: page,
+          isFirstPage: (page - 1) == 0,
+          isLastPage: ((page - 1) * 10 + posts.length) == total,
+          user: req.session.user,
+          success: req.flash('success').toString(),
+          error: req.flash('error').toString()
         });
       });
     }); 
