@@ -54,7 +54,7 @@ Post.prototype.save = function(callback) {
 };
 
 //load relative data
-Post.get = function(name, callback) {
+Post.getAll = function(name, callback) {
   //open database
   mongodb.open(function (err, db) {
     if (err) {
@@ -83,6 +83,37 @@ Post.get = function(name, callback) {
           doc.post = markdown.toHTML(doc.post);
         });
         callback(null, docs);//return success
+      });
+    });
+  });
+};
+
+//get an article
+Post.getOne = function(name, day, title, callback) {
+  //open database
+  mongodb.open(function (err, db) {
+    if (err) {
+      return callback(err);
+    }
+    //load posts
+    db.collection('posts', function (err, collection) {
+      if (err) {
+        mongodb.close();
+        return callback(err);
+      }
+      //query
+      collection.findOne({
+        "name": name,
+        "time.day": day,
+        "title": title
+      }, function (err, doc) {
+        mongodb.close();
+        if (err) {
+          return callback(err);
+        }
+        //parse markdown into html
+        doc.post = markdown.toHTML(doc.post);
+        callback(null, doc);//return result
       });
     });
   });
