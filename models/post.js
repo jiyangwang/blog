@@ -23,13 +23,14 @@ Post.prototype.save = function(callback) {
       date.getHours() + ":" + (date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes()) 
   }
   //file to database
-  var post = {
+   var post = {
       name: this.name,
       time: time,
-      title: this.title,
+      title:this.title,
       tags: this.tags,
       post: this.post,
-      comments: []
+      comments: [],
+      pv: 0
   };
   //open database
   mongodb.open(function (err, db) {
@@ -98,7 +99,7 @@ Post.getTen = function(name, page, callback) {
 };
 
 
-//get an article
+//get one article
 Post.getOne = function(name, day, title, callback) {
   //open database
   mongodb.open(function (err, db) {
@@ -117,18 +118,31 @@ Post.getOne = function(name, day, title, callback) {
         "time.day": day,
         "title": title
       }, function (err, doc) {
-        mongodb.close();
         if (err) {
+          mongodb.close();
           return callback(err);
         }
-        //parse markdown into html
         if (doc) {
+          //pv + 1
+          collection.update({
+            "name": name,
+            "time.day": day,
+            "title": title
+          }, {
+            $inc: {"pv": 1}
+          }, function (err) {
+            mongodb.close();
+            if (err) {
+              return callback(err);
+            }
+          });
+          //parse markdown into html
           doc.post = markdown.toHTML(doc.post);
           doc.comments.forEach(function (comment) {
             comment.content = markdown.toHTML(comment.content);
           });
+          callback(null, doc);//return one article
         }
-        callback(null, doc);//return result
       });
     });
   });
