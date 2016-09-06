@@ -13,9 +13,21 @@
 	      <a class="tag" href="/tags/<%= tag %>"><%= tag %></a>
 	    <% } %>
 	  <% }) %>
+  	  <% if (post.reprint_info.reprint_from) { %>
+	  	<br><a href="/u/<%= post.reprint_info.reprint_from.name %>/<%= post.reprint_info.reprint_from.day %>/<%= post.reprint_info.reprint_from.title %>">Original Post</a>
+	  <% } %>
 	</p>
   <p><%- post.post %></p>
-  <p class="info">read：<%= post.pv %> | comment：<%= post.comments.length %></p>
+  <p class="info">
+  Read：<%= post.pv %> | 
+  Comment：<%= post.comments.length %> | 
+  Repost：
+  <% if (post.reprint_info.reprint_to) { %>
+    <%= post.reprint_info.reprint_to.length %>
+  <% } else { %>
+    <%= 0 %>
+  <% } %>
+</p>
 <% }) %>
 <%- include paging %>
 <%- include footer %>

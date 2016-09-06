@@ -358,6 +358,27 @@ module.exports = function(app) {
     });
   });
 
+  app.get('/reprint/:name/:day/:title', checkLogin);
+  app.get('/reprint/:name/:day/:title', function (req, res) {
+    Post.edit(req.params.name, req.params.day, req.params.title, function (err, post) {
+      if (err) {
+        req.flash('error', err); 
+        return res.redirect(back);
+      }
+      var currentUser = req.session.user,
+          reprint_from = {name: post.name, day: post.time.day, title: post.title},
+          reprint_to = {name: currentUser.name, head: currentUser.head};
+      Post.reprint(reprint_from, reprint_to, function (err, post) {
+        if (err) {
+          req.flash('error', err); 
+          return res.redirect('back');
+        }
+        req.flash('success', 'Repost successfully!');
+        res.redirect('/');
+      });
+    });
+  });
+
   function checkLogin(req, res, next) {
     if (!req.session.user) {
       req.flash('error', 'You need to login first!'); 
